@@ -8,7 +8,7 @@ var config = require('./config');
 
 module.exports = function get_phashes(url) {
   return request(encrypt(url)).then(function (response) {
-    return response.json().then(function (body) {
+    return response.json().catch(noop).then(function (body) {
       if (response.status === 200) return body;
 
       if (response.status === 202) {
@@ -17,7 +17,7 @@ module.exports = function get_phashes(url) {
         }).then(get_phashes.bind(null, url));
       }
 
-      throw error(response.status, body.message);
+      throw error(response.status, body ? body.message : '');
     })
   })
 }
@@ -29,3 +29,5 @@ function encrypt(url) {
   buffers.push(cipher.final());
   return config.host + '/' + Buffer.concat(buffers).toString('hex');
 }
+
+function noop() {}
